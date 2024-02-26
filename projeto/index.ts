@@ -1,16 +1,5 @@
-import UserService from "./src/domains/User/services/UserServices";
+import { app } from "./config/expressConfig";
 
-async function main() {
-    const body = {
-      email: "nicolasvondolinger@gmail.com",
-      name: "Nicolas",
-      role: "ADMIN",
-      password: "nicolas"
-    };
-
-    const user = await UserService.create(body);
-
-    console.log(user);
-}
-
-main();
+app.listen(process.env.PORT, () => {
+  console.log("Servidor hosteado na porta " + process.env.PORT);
+});
