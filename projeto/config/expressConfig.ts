@@ -4,6 +4,7 @@ import cors, { CorsOptions } from "cors";
 import UserRouter from "../src/domains/User/controllers/index";
 import MusicRouter from "../src/domains/Music/controllers/index";
 import ArtistRouter from "../src/domains/Artist/controllers/index";
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ const options : CorsOptions = {
   origin: process.env.APP_URL
 };
 
+
+app.use(cookieParser());
 app.use(cors(options));
 app.use(express.json());
 app.use(express.urlencoded({

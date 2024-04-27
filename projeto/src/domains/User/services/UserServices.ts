@@ -1,8 +1,63 @@
 import prisma from "../../../../config/client";
-import { Music, User } from "@prisma/client";
+import { Music } from "@prisma/client";
+import { User } from "../types/user.interface";
+import {hash} from 'bcrypt';
+import { QueryError } from "../../../../errors/QueryError";
+import { NotAuthorizedError } from "../../../../errors/NotAuthorizedError";
+import { userRoles } from "../../../../utils/constants/userRoles";
 
 class UserService{
+
+    async encryptPassword(password: string){
+      const saltRounds = 10;
+      return await hash(password, saltRounds);
+    }
+
+    async findById(id: Number){
+      const user = await prisma.user.findUnique({
+        where:{
+          id: Number(id),
+        }
+      });
+
+      if(user == null) throw new QueryError("Usuário não encontrado.");
+      return user;
+    }
+
+    async findByEmail(email: string){
+      const user = await prisma.user.findUnique({
+        where: { 
+          email: email,
+        }
+      });
+
+      if(user == null) throw new QueryError("Usuário não encontrado.");
+      return user;
+    }
+
+    async getMyAccount(user: User){
+      return await prisma.user.findUnique({
+        where:{
+          id: user.id,
+        },
+        select:{
+          email: true,
+          id: true,
+          name: true,
+          listenedMusics: true,
+          photo: true,
+          role: true,
+        },
+      });
+    }
+
     async create(body: User){
+      if(await prisma.user.findUnique({where: {email: body.email}})) throw new QueryError("Email já cadastrado.");
+
+      body.password = await this.encryptPassword(body.password);
+
+      if(body.role == userRoles.ADMIN) throw new NotAuthorizedError("Não é possível criar usuários com cargos admin.");
+
       const user = await prisma.user.create({
         data:{
           email: body.email,
@@ -10,16 +65,6 @@ class UserService{
           password: body.password,
           photo: body.photo,
           role: body.role,
-        }
-      });
-
-      return user;
-    }
-
-    async read(id: Number){
-      const user = await prisma.user.findUnique({
-        where:{
-          id: Number(id),
         }
       });
 
@@ -41,16 +86,6 @@ class UserService{
       const user = await prisma.user.delete({
         where:{
           id: Number(id),
-        }
-      });
-
-      return user;
-    }
-
-    async findByEmail(email : string){
-      const user = await prisma.user.findUnique({
-        where:{
-          email: email,
         }
       });
 
@@ -99,7 +134,7 @@ class UserService{
       }
     }
 
-    async removeMusic(userId: number, musicId: number){
+    async removeMusic(userId: User, musicId: number){
       try{
         const user = await prisma.user.findUnique({
           where: {

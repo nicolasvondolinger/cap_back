@@ -1,7 +1,15 @@
-import UserService from "../services/UserServices";
 import { Router, Request, Response, NextFunction } from "express";
+import UserService from "../services/userServices";
+import { statusCodes } from "../../../../utils/constants/statusCodes";
+import { checkRole } from "../../../middlewares/checkRole";
+import { loginMiddleware, logoutMiddleware, notLoggedIn, verifyJWT } from "../../../middlewares/authentication";
 
 const router = Router();
+
+router.post('/login', notLoggedIn, loginMiddleware);
+
+router.post('/logout', verifyJWT, logoutMiddleware);
+
 
 router.get("/", async(req: Request, res: Response, next: NextFunction)=>{
   try{
@@ -10,18 +18,18 @@ router.get("/", async(req: Request, res: Response, next: NextFunction)=>{
   } catch (error){
     next(error);
   }
-})
+});
 
-router.get('/:email', async(req: Request, res: Response, next: NextFunction) => {
+router.get('/myAccount', verifyJWT, async(req: Request, res: Response, next: NextFunction) => {
   try{
-    const user = await UserService.findByEmail(req.params.email);
+    const user = await UserService.getMyAccount(req.body);
     res.json(user);
   } catch(error){
     next(error);
   }
 });
 
-router.get('/getAllMusics/:id', async(req: Request, res: Response, next: NextFunction) => {
+router.get('/getMyMusics/:id', verifyJWT, async(req: Request, res: Response, next: NextFunction) => {
   try{
     const user = await UserService.findMusics(Number(req.params.id));
     res.json(user);
@@ -33,7 +41,7 @@ router.get('/getAllMusics/:id', async(req: Request, res: Response, next: NextFun
 router.post('/create', async(req: Request, res: Response, next: NextFunction) => {
   try{
     await UserService.create(req.body);
-    res.json("Usuário criado com sucesso.");
+    res.status(statusCodes.CREATED).json("Usuário criado com sucesso.");
   } catch (error){
     next(error);
   }
@@ -48,9 +56,9 @@ router.put('/addMusic/:userId/:musicId', async(req: Request, res: Response, next
   }
 });
 
-router.put('/removeMusic/:userId/:musicId', async(req: Request, res: Response, next: NextFunction)=>{
+router.put('/removeMusic/:musicId', async(req: Request, res: Response, next: NextFunction)=>{
   try{
-    await UserService.removeMusic(Number(req.params.userId), Number(req.params.musicId));
+    await UserService.removeMusic(req.user, Number(req.params.musicId));
     res.json("Música removida do usuário com sucesso.");
   }catch(error){
     next(error);

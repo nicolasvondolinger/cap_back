@@ -23,7 +23,7 @@ router.get('/:id', async(req: Request, res: Response, next: NextFunction)=>{
 
 router.post('/create', async(req: Request, res: Response, next: NextFunction)=>{
   try{
-    const artist = await ArtistServices.create(req.body);
+    const artist = await ArtistServices.create(req.body, req.user);
     res.json("Usuário criado com sucesso.");
   }catch(error){
     next(error);
@@ -32,7 +32,7 @@ router.post('/create', async(req: Request, res: Response, next: NextFunction)=>{
 
 router.post('/addMusic/:artistId/:musicId', async(req: Request, res: Response, next: NextFunction)=>{
   try{
-    const artist = await ArtistServices.addMusic(Number(req.params.artistId), Number(req.params.musicId));
+    const artist = await ArtistServices.addMusic(req.body, Number(req.params.artistId), Number(req.params.musicId));
     res.json("Lista de músicas do artista foi atualizada com sucesso.");
   } catch(error){
     next(error);
@@ -41,7 +41,7 @@ router.post('/addMusic/:artistId/:musicId', async(req: Request, res: Response, n
 
 router.put('/removeMusic/:artistId/:musicId', async(req: Request, res: Response, next: NextFunction)=>{
   try{
-    const artist = await ArtistServices.removeMusic(Number(req.params.artistId), Number(req.params.musicId));
+    const artist = await ArtistServices.removeMusic(req.body, Number(req.params.artistId), Number(req.params.musicId));
     res.json("Lista de músicas do artista foi atualizada com sucesso.");
   } catch(error){
     next(error);
@@ -50,7 +50,7 @@ router.put('/removeMusic/:artistId/:musicId', async(req: Request, res: Response,
 
 router.put('/updateArtist/:id', async(req: Request, res: Response, next: NextFunction) =>{
   try{
-    const artist = await ArtistServices.update(Number(req.params.id), req.body);
+    const artist = await ArtistServices.update(req.body, Number(req.params.id), req.body);
     res.json("Usuário atualizado com sucesso.");
   }catch (error){
     next(error);
@@ -59,7 +59,7 @@ router.put('/updateArtist/:id', async(req: Request, res: Response, next: NextFun
 
 router.delete('/deleteArtist/:id', async(req: Request, res: Response, next: NextFunction) => {
   try{
-    const artist = await ArtistServices.delete(Number(req.params.id));
+    const artist = await ArtistServices.delete(req.body, Number(req.params.id));
     res.json("Artista deletado com sucesso.");
   }catch(error){
     next(error);

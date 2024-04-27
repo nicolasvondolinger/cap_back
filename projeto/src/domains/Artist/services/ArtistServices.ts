@@ -1,9 +1,15 @@
 import prisma from "../../../../config/client";
 import { Artist } from "@prisma/client";
+import { userRoles } from "../../../../utils/constants/userRoles";
+import { User } from "@prisma/client";
+import { NotAuthorizedError } from "../../../../errors/NotAuthorizedError";
 
 
 class ArtistService{
-  async create(body: Artist){
+  async create(body: Artist, user: User){
+
+    if(user.role != userRoles.ADMIN) throw new NotAuthorizedError("Não é possível editar sem ser um administrador do sistema.");
+
     const artist = await prisma.artist.create({
       data:{
         name: body.name,
@@ -24,7 +30,9 @@ class ArtistService{
     return artist;
   }
 
-  async update(id: number, updateFields: Partial<Artist>){
+  async update(body: User, id: number, updateFields: Partial<Artist>){
+    
+    if(body.role != userRoles.ADMIN) throw new NotAuthorizedError("Não é possível editar sem ser um administrador do sistema.");
     const artist = await prisma.artist.update({
       where:{
         id: id,
@@ -35,7 +43,10 @@ class ArtistService{
     return artist;
   }
 
-  async delete(id: number){
+  async delete(body: User, id: number){
+
+    if(body.role != userRoles.ADMIN) throw new NotAuthorizedError("Não é possível deletar sem ser um administrador do sistema.");
+    
     const artist = await prisma.artist.delete({
       where:{
         id: id,
@@ -54,7 +65,10 @@ class ArtistService{
     return artist;
   }
 
-  async addMusic(artistId: number, musicId: number){
+  async addMusic(body: User, artistId: number, musicId: number){
+
+    if(body.role != userRoles.ADMIN) throw new NotAuthorizedError("Não é possível editar sem ser um administrador do sistema.");
+    
     const artist = await prisma.artist.findUnique({
       where: {
         id: artistId,
@@ -78,7 +92,10 @@ class ArtistService{
     return updateSongs;
   }
 
-  async removeMusic(artistId: number, musicId: number){
+  async removeMusic(body: User, artistId: number, musicId: number){
+
+    if(body.role != userRoles.ADMIN) throw new NotAuthorizedError("Não é possível editar sem ser um administrador do sistema.");
+    
     const artist = await prisma.artist.findUnique({
     where: {
         id: artistId,
